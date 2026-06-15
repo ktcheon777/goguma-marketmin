@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import DeleteProductButton from '@/app/components/DeleteProductButton'
 
 function formatPrice(price: number) {
   return price.toLocaleString('ko-KR') + '원'
@@ -16,10 +17,13 @@ function formatDate(dateStr: string) {
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ message?: string }>
 }) {
   const { id } = await params
+  const { message } = await searchParams
   const supabase = await createClient()
 
   // 상품 데이터 가져오기
@@ -86,25 +90,41 @@ export default async function ProductDetailPage({
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{product.description}</p>
         </div>
 
-        {/* 가격 + 문의 버튼 */}
-        <div className="bg-white rounded-2xl p-4 flex items-center justify-between sticky bottom-4 shadow-lg border border-gray-100">
-          <div>
-            <p className="text-xs text-gray-400">판매가격</p>
-            <p className="text-2xl font-bold text-gray-900">{formatPrice(product.price)}</p>
+        {/* 수정 완료 메시지 */}
+        {message && (
+          <div className="mb-4 p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-700 text-sm text-center">
+            {message}
           </div>
-          {isOwner ? (
-            // 내 글이면 "내 판매글" 표시
-            <span className="text-sm bg-gray-100 text-gray-500 px-5 py-2.5 rounded-xl">
-              내 판매글
-            </span>
-          ) : (
-            // 다른 사람 글이면 채팅 버튼 (아직 기능 미구현)
-            <button
-              disabled
-              className="text-sm bg-sky-500 text-white px-5 py-2.5 rounded-xl opacity-50 cursor-not-allowed"
-            >
-              채팅하기 (준비 중)
-            </button>
+        )}
+
+        {/* 가격 + 버튼 패널 */}
+        <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs text-gray-400">판매가격</p>
+              <p className="text-2xl font-bold text-gray-900">{formatPrice(product.price)}</p>
+            </div>
+            {!isOwner && (
+              <button
+                disabled
+                className="text-sm bg-sky-500 text-white px-5 py-2.5 rounded-xl opacity-50 cursor-not-allowed"
+              >
+                채팅하기 (준비 중)
+              </button>
+            )}
+          </div>
+
+          {/* 내 글일 때만 수정·삭제 버튼 표시 */}
+          {isOwner && (
+            <div className="flex gap-2 mt-1">
+              <Link
+                href={`/products/${product.id}/edit`}
+                className="flex-1 text-center bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold py-3 rounded-xl transition-colors border border-sky-200"
+              >
+                수정
+              </Link>
+              <DeleteProductButton id={product.id} />
+            </div>
           )}
         </div>
       </main>
