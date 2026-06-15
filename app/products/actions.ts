@@ -23,6 +23,7 @@ export async function createProduct(formData: FormData) {
     price,
     category,
     description,
+    seller_nickname: user.user_metadata?.nickname ?? user.email?.split('@')[0],
   })
 
   if (error) {

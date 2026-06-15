@@ -79,12 +79,12 @@ export default async function Home({
               >
                 판매하기
               </Link>
-              <button
-                disabled
-                className="bg-white border border-sky-300 text-sky-700 px-6 py-3 rounded-xl font-semibold opacity-50 cursor-not-allowed"
+              <Link
+                href="/products"
+                className="bg-white border border-sky-300 hover:bg-sky-50 text-sky-700 px-6 py-3 rounded-xl font-semibold transition-colors"
               >
-                둘러보기 (준비 중)
-              </button>
+                둘러보기
+              </Link>
             </div>
             <div>
               <DeleteAccountButton />
