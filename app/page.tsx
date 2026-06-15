@@ -3,9 +3,15 @@ import { logout } from '@/app/auth/actions'
 import Link from 'next/link'
 import DeleteAccountButton from '@/app/components/DeleteAccountButton'
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ message?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const params = await searchParams
+  const message = params.message
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-white">
@@ -61,13 +67,18 @@ export default async function Home() {
               {user.user_metadata?.nickname ?? '회원'}님, 반가워요!
             </h2>
             <p className="text-sky-600 mb-8">하늘장터에서 이웃과 거래해보세요.</p>
+            {message && (
+              <div className="mb-6 p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-700 text-sm">
+                {message}
+              </div>
+            )}
             <div className="inline-flex gap-3 mb-12">
-              <button
-                disabled
-                className="bg-sky-500 text-white px-6 py-3 rounded-xl font-semibold opacity-50 cursor-not-allowed"
+              <Link
+                href="/products/new"
+                className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-sm"
               >
-                판매하기 (준비 중)
-              </button>
+                판매하기
+              </Link>
               <button
                 disabled
                 className="bg-white border border-sky-300 text-sky-700 px-6 py-3 rounded-xl font-semibold opacity-50 cursor-not-allowed"
