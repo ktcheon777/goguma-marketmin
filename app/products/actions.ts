@@ -10,6 +10,24 @@ export async function deleteProduct(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // 삭제 전에 이미지 URL 목록 가져오기
+  const { data: product } = await supabase
+    .from('products')
+    .select('image_urls')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  // 스토리지(파일 저장소)에서 이미지 파일도 삭제
+  if (product?.image_urls?.length) {
+    const paths = (product.image_urls as string[])
+      .map(url => url.split('/product-images/')[1]?.split('?')[0])
+      .filter(Boolean) as string[]
+    if (paths.length) {
+      await supabase.storage.from('product-images').remove(paths)
+    }
+  }
+
   await supabase.from('products').delete().eq('id', id).eq('user_id', user.id)
   redirect('/products?message=' + encodeURIComponent('판매글이 삭제됐습니다.'))
 }
@@ -21,6 +39,8 @@ export async function updateProduct(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const imageUrls = formData.getAll('image_urls') as string[]
+
   const { error } = await supabase
     .from('products')
     .update({
@@ -28,6 +48,7 @@ export async function updateProduct(formData: FormData) {
       price: parseInt(formData.get('price') as string, 10),
       category: formData.get('category') as string,
       description: formData.get('description') as string,
+      image_urls: imageUrls,
     })
     .eq('id', id)
     .eq('user_id', user.id)
@@ -41,7 +62,6 @@ export async function updateProduct(formData: FormData) {
 export async function createProduct(formData: FormData) {
   const supabase = await createClient()
 
-  // 로그인 여부 확인
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect('/login')
@@ -51,6 +71,7 @@ export async function createProduct(formData: FormData) {
   const price = parseInt(formData.get('price') as string, 10)
   const category = formData.get('category') as string
   const description = formData.get('description') as string
+  const imageUrls = formData.getAll('image_urls') as string[]
 
   const { error } = await supabase.from('products').insert({
     user_id: user.id,
@@ -58,6 +79,7 @@ export async function createProduct(formData: FormData) {
     price,
     category,
     description,
+    image_urls: imageUrls,
     seller_nickname: user.user_metadata?.nickname ?? user.email?.split('@')[0],
   })
 

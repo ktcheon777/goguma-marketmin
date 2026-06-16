@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DeleteProductButton from '@/app/components/DeleteProductButton'
+import ImageGallery from '@/app/components/ImageGallery'
 
 function formatPrice(price: number) {
   return price.toLocaleString('ko-KR') + '원'
@@ -26,19 +27,16 @@ export default async function ProductDetailPage({
   const { message } = await searchParams
   const supabase = await createClient()
 
-  // 상품 데이터 가져오기
   const { data: product } = await supabase
     .from('products')
     .select('*')
     .eq('id', id)
     .single()
 
-  // 없는 상품이면 404 페이지로
   if (!product) {
     notFound()
   }
 
-  // 현재 로그인한 사용자 확인 (본인 글인지 확인용)
   const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.id === product.user_id
 
@@ -57,10 +55,8 @@ export default async function ProductDetailPage({
       {/* 상세 내용 */}
       <main className="max-w-2xl mx-auto px-4 py-6">
 
-        {/* 이미지 자리 (나중에 사진 추가 예정) */}
-        <div className="w-full h-64 bg-gray-100 rounded-2xl flex items-center justify-center text-7xl mb-6">
-          🛍️
-        </div>
+        {/* 이미지 갤러리 (슬라이더) */}
+        <ImageGallery images={product.image_urls ?? []} title={product.title} />
 
         {/* 판매자 정보 */}
         <div className="bg-white rounded-2xl p-4 mb-4 flex items-center gap-3">
@@ -75,22 +71,14 @@ export default async function ProductDetailPage({
 
         {/* 상품 정보 */}
         <div className="bg-white rounded-2xl p-5 mb-4">
-          {/* 카테고리 배지 */}
           <span className="inline-block text-xs bg-sky-100 text-sky-700 px-2.5 py-1 rounded-full mb-3">
             {product.category}
           </span>
-
-          {/* 제목 */}
           <h2 className="text-xl font-bold text-gray-900 mb-2">{product.title}</h2>
-
-          {/* 등록일 */}
           <p className="text-xs text-gray-400 mb-4">{formatDate(product.created_at)}</p>
-
-          {/* 설명 */}
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{product.description}</p>
         </div>
 
-        {/* 수정 완료 메시지 */}
         {message && (
           <div className="mb-4 p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-700 text-sm text-center">
             {message}
@@ -114,7 +102,6 @@ export default async function ProductDetailPage({
             )}
           </div>
 
-          {/* 내 글일 때만 수정·삭제 버튼 표시 */}
           {isOwner && (
             <div className="flex gap-2 mt-1">
               <Link

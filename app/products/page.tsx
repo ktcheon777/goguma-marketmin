@@ -1,12 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import Image from 'next/image'
 import Link from 'next/link'
 
-// 가격을 "1,200,000원" 형식으로 바꿔주는 함수
 function formatPrice(price: number) {
   return price.toLocaleString('ko-KR') + '원'
 }
 
-// 날짜를 "6월 15일" 형식으로 바꿔주는 함수
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('ko-KR', {
     month: 'long',
@@ -17,7 +16,6 @@ function formatDate(dateStr: string) {
 export default async function ProductsPage() {
   const supabase = await createClient()
 
-  // Supabase에서 상품 목록을 최신순으로 가져오기
   const { data: products } = await supabase
     .from('products')
     .select('*')
@@ -46,7 +44,6 @@ export default async function ProductsPage() {
       {/* 목록 */}
       <main className="max-w-2xl mx-auto px-4 py-6">
         {!products || products.length === 0 ? (
-          // 상품이 없을 때 보여줄 화면
           <div className="text-center py-24">
             <div className="text-5xl mb-4">📭</div>
             <p className="text-gray-500 mb-6">아직 등록된 판매글이 없어요.</p>
@@ -65,9 +62,21 @@ export default async function ProductsPage() {
                 href={`/products/${product.id}`}
                 className="flex items-center gap-4 py-4 hover:bg-sky-50 -mx-4 px-4 rounded-xl transition-colors"
               >
-                {/* 이미지 자리 (나중에 사진 추가 예정) */}
-                <div className="w-20 h-20 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center text-3xl">
-                  🛍️
+                {/* 썸네일 이미지 */}
+                <div className="w-20 h-20 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
+                  {product.image_urls?.[0] ? (
+                    <Image
+                      src={product.image_urls[0]}
+                      alt={product.title}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl">
+                      🛍️
+                    </div>
+                  )}
                 </div>
 
                 {/* 상품 정보 */}
@@ -82,7 +91,6 @@ export default async function ProductsPage() {
                   </p>
                 </div>
 
-                {/* 화살표 */}
                 <span className="text-gray-300 flex-shrink-0">›</span>
               </Link>
             ))}
